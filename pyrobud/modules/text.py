@@ -127,3 +127,18 @@ class TextModule(module.Module):
             return base64.b64decode(ctx.input).decode("utf-8", "replace")
         except binascii.Error as e:
             return f"⚠️ Invalid Base64 data: {e}"
+
+    @command.desc("Encode text into Base32")
+    @command.alias("b32encode", "b32e")
+    @command.usage("[text to encode, or reply]", reply=True)
+    async def cmd_base32encode(self, ctx: command.Context):
+        return base64.b32encode(ctx.input.encode("utf-8")).decode()
+
+    @command.desc("Decode Base32 data")
+    @command.alias("b32decode", "b32d")
+    @command.usage("base32 text to decode, or reply", reply=True)
+    async def cmd_base32decode(self, ctx: command.Context):
+        try:
+            return base64.b32decode(ctx.input).decode("utf-8", "replace")
+        except binascii.Error as e:
+            return f"⚠️ Invalid Base32 data: {e}"
