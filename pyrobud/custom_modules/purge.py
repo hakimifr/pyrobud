@@ -16,8 +16,11 @@ class PurgeModule(module.Module):
 
     @command.desc("Simple purge command")
     @command.alias("p")
-    @command.usage("[Reply to purge starting point]", reply=True)
     async def cmd_purge(self, ctx: command.Context) -> None:
+        if not ctx.msg.reply_to_msg_id:
+            await ctx.respond("__Reply to a message!__")
+            return
+
         await ctx.respond("Purging...")
         self.log.debug(ctx.msg.id)
         self.log.debug(ctx.msg.reply_to_msg_id)
