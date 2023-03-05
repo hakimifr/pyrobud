@@ -110,6 +110,64 @@ class ModerationModule(module.Module):
 
         return util.text.join_list(lines)
 
+    @command.desc("Kick user(s) from the current chat by ID or reply")
+    @command.usage(
+        "[ID(s) of the user(s) to kick?, or reply to user's message]", optional=True
+    )
+    async def cmd_kick(self, ctx: command.Context) -> str:
+        input_ids = ctx.args
+
+        try:
+            # Parse user IDs without duplicates
+            user_ids = list(dict.fromkeys(map(int, input_ids)))
+        except ValueError:
+            return "__Encountered invalid ID while parsing arguments.__"
+
+        if ctx.msg.is_reply:
+            reply_msg = await ctx.msg.get_reply_message()
+            user_ids.append(reply_msg.from_id)
+
+        if not user_ids:
+            return "__Provide a list of user IDs to kick, or reply to a user's message to kick them.__"
+
+        lines: List[str]
+        chat = await ctx.msg.get_chat()
+        single_user = len(user_ids) == 1
+        if single_user:
+            lines = []
+        else:
+            lines = [f"**Kicked {len(user_ids)} users:**"]
+            await ctx.respond(f"Kicking {len(user_ids)} users...")
+
+        for user_id in user_ids:
+            try:
+                user = await self.bot.client.get_entity(user_id)
+            except ValueError:
+                if single_user:
+                    lines.append(f"__Unable to find user__ `{user_id}`.")
+                else:
+                    lines.append(f"Unable to find user `{user_id}`")
+
+                continue
+
+            if not isinstance(user, tg.types.User):
+                ent_type = type(user).__name__.lower()
+                lines.append(f"Skipped {ent_type} object (`{user_id}`)")
+                continue
+
+            user_spec = f"{util.tg.mention_user(user)} (`{user_id}`)"
+            if single_user:
+                lines.append(f"**Kicked** {user_spec}")
+            else:
+                lines.append(user_spec)
+
+            try:
+                await self.bot.client.kick_participant(chat, user)
+            except tg.errors.ChatAdminRequiredError:
+                return "__I need admin privileges to kick users in this chat.__"
+
+        return util.text.join_list(lines)
+
     @command.desc("Prune deleted members in this group or the specified group")
     @command.alias("prune")
     @command.usage("[target chat ID/username/...?]", optional=True)
@@ -162,3 +220,18 @@ class ModerationModule(module.Module):
 
         percent_pruned = int(pruned_count / total_count * 100)
         return f"Pruned {pruned_count} deleted users{_chat_name2} — {percent_pruned}% of the original member count."
+
+    @command.desc("Simple purge command")
+    @command.alias("p")
+    async def cmd_purge(self, ctx: command.Context) -> None:
+        if not ctx.msg.reply_to_msg_id:
+            await ctx.respond("__Reply to a message!__")
+            return
+
+        await ctx.respond("Purging...")
+        self.log.debug(ctx.msg.id)
+        self.log.debug(ctx.msg.reply_to_msg_id)
+        messages: list = list(range(ctx.msg.reply_to_msg_id, ctx.msg.id + 1))  # type: ignore
+        self.log.info(f"Deleting message(s) in range {messages}")
+        await ctx.bot.client.delete_messages(ctx.msg.chat_id, messages)  # type: ignore
+        self.log.info(f"Deleted message(s) in range {messages}")
