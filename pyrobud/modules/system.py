@@ -191,7 +191,7 @@ class SystemModule(module.Module):
 
         # Pull from remote
         await ctx.respond(f"Pulling changes from `{remote}`...")
-        await util.run_sync(remote.pull)
+        await util.run_sync(remote.pull, "--rebase")
 
         # Return early if no changes were pulled
         diff = old_commit.diff()
