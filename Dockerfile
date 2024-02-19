@@ -34,6 +34,7 @@ WORKDIR /src
 # Install bot package and dependencies
 COPY . .
 RUN pip install wheel
+RUN CFLAGS='-fno-rtti' pip install plyvel
 RUN pip install .[fast]
 RUN pip install uvloop
 
