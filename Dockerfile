@@ -1,7 +1,7 @@
 # Build Go programs (only corrupter at the moment)
 FROM golang:1-alpine AS go-build
 RUN apk add --no-cache git
-RUN go get github.com/r00tman/corrupter
+RUN go install github.com/r00tman/corrupter@latest
 
 
 # Build Python package and dependencies
