@@ -62,10 +62,6 @@ RUN adduser -D pyrobud
 RUN mkdir -p /data
 RUN chown pyrobud:pyrobud /data
 
-# Ensure we a volume is mounted even if the user doesn't explicitly specify it,
-# to prevent unintentional data loss
-VOLUME [ "/data" ]
-
 # Copy Go programs
 COPY --from=go-build /go/bin/corrupter /usr/local/bin
 
