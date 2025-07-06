@@ -48,7 +48,8 @@ gitpython = "^3.0.5"
 ratelimit = "^2.2.1"
 sentry-sdk = ">=0.13.5,<1.10.0"
 # Stickers module
-pillow = ">=6.2.2,<9.0.0"
+#pillow = ">=6.2.2,<9.0.0"
+pillow = ">=11.0.0"
 # System module
 speedtest-cli = "^2.1.2"
 # Debug module
@@ -61,8 +62,8 @@ regex = "^2021.8.28"
 [tool.poetry.extras]
 fast = ["cryptg"]
 
-[tool.poetry.dev-dependencies]
-black = "^20.8b1"
+[tool.poetry.group.dev.dependencies]
+black = "^25.0"
 isort = {version = "^5.8.0", extras = ["pyproject"]}
 mypy = "^1.0.0"
 pre-commit = "^2.1.1"
