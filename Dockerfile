@@ -1,31 +1,36 @@
 # Build Go programs (only corrupter at the moment)
-FROM golang:1-alpine AS go-build
-RUN apk add --no-cache git
+FROM registry.fedoraproject.org/fedora-minimal:latest AS go-build
+RUN microdnf install -y golang git && microdnf clean all
+ENV GOPATH=/go
 RUN go install github.com/r00tman/corrupter@latest
 
 
 # Build Python package and dependencies
-FROM python:3-alpine AS python-build
-RUN apk add --no-cache \
+FROM registry.fedoraproject.org/fedora-minimal:latest AS python-build
+RUN microdnf install -y \
         git \
-        libffi-dev \
-        musl-dev \
+        libffi-devel \
         gcc \
-        g++ \
-        leveldb-dev \
+        gcc-c++ \
+        leveldb \
+        leveldb-devel \
         make \
-        zlib-dev \
-        tiff-dev \
-        freetype-dev \
-        libpng-dev \
-        libjpeg-turbo-dev \
-        lcms2-dev \
-        libwebp-dev \
-        openssl-dev \
-        cargo
+        zlib-devel \
+        libtiff-devel \
+        freetype-devel \
+        libpng-devel \
+        libjpeg-turbo-devel \
+        lcms2-devel \
+        libwebp-devel \
+        openssl-devel \
+        cargo \
+        python3 \
+        python3-devel \
+        python3-pip \
+    && microdnf clean all
 RUN mkdir -p /opt/venv
 WORKDIR /opt/venv
-RUN python3 -m venv /opt/venv
+RUN python3 -m venv .
 ENV PATH="/opt/venv/bin:$PATH"
 
 RUN mkdir -p /src
@@ -34,29 +39,31 @@ WORKDIR /src
 # Install bot package and dependencies
 COPY . .
 RUN pip install wheel
-RUN CFLAGS='-fno-rtti' pip install plyvel
+RUN pip install plyvel
 RUN pip install .[fast]
 RUN pip install uvloop
 
 
 # Package everything
-FROM python:3-alpine AS final
+FROM registry.fedoraproject.org/fedora-minimal:latest AS final
 # Install optional native tools (for full functionality)
-RUN apk add --no-cache fastfetch
+RUN microdnf install -y fastfetch && microdnf clean all
 # Install native dependencies
-RUN apk add --no-cache \
+RUN microdnf install -y \
+        python3 \
         libffi \
         leveldb \
         zlib \
-        tiff \
+        libtiff \
         freetype \
         libpng \
         libjpeg-turbo \
         lcms2 \
-        libwebp
+        libwebp \
+    && microdnf clean all
 
 # Create bot user
-RUN adduser -D pyrobud
+RUN useradd --system --shell /bin/false pyrobud
 
 # Create data directory for the bot user
 RUN mkdir -p /data
