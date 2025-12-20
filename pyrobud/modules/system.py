@@ -54,7 +54,7 @@ class SystemModule(module.Module):
 
         try:
             stdout, _, ret = await util.system.run_command(
-                "fastfetch --logo none --pipe", "--logo", "none", "--pipe",
+                "fastfetch", "--logo", "none", "--pipe",
                 timeout=60
             )
         except asyncio.TimeoutError:
