@@ -42,7 +42,7 @@ RUN pip install uvloop
 # Package everything
 FROM python:3-alpine AS final
 # Install optional native tools (for full functionality)
-RUN apk add --no-cache neofetch
+RUN apk add --no-cache fastfetch
 # Install native dependencies
 RUN apk add --no-cache \
         libffi \
